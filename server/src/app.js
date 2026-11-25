@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
@@ -16,6 +17,14 @@ app.use(express.json());
 if (config.env !== 'test') app.use(morgan('dev'));
 
 app.use('/api', require('./routes'));
+
+if (config.env === 'production') {
+  const clientDist = path.join(__dirname, '../../client/dist');
+  app.use(express.static(clientDist));
+  app.get(/^\/(?!api(\/|$)).*/, (req, res, next) => {
+    res.sendFile(path.join(clientDist, 'index.html'), (err) => err && next());
+  });
+}
 
 app.use(notFound);
 app.use(errorHandler);
